@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Biblioteca de Manhwas</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --card: #1a1d27;
+      --card-paused: #161820;
+      --accent: #7c5cff;
+      --accent-hover: #6744f5;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: #2e3345;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --paused: #38bdf8;
+      --star: #fbbf24;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-count {
+      background: var(--accent);
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .panel h2 {
+      font-size: 1.15rem;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+      cursor: pointer;
+    }
+
+    .checkbox-row input {
+      width: auto;
+      accent-color: var(--accent);
+    }
+
+    button.btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button.btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .alert {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .alert.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      display: block;
+    }
+
+    .alert.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--success);
+      color: #6ee7b7;
+      display: block;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .toolbar select {
+      width: auto;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(315px, 1fr));
+      gap: 16px;
+    }
+
+    .manhwa-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .manhwa-card.is-paused {
+      background: var(--card-paused);
+      border-color: rgba(56, 189, 248, 0.5);
+      opacity: 0.92;
+    }
+
+    .manhwa-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .rating-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(251, 191, 36, 0.14);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      color: var(--star);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+
+    .rating-pill.unrated {
+      background: rgba(148, 163, 184, 0.1);
+      border-color: var(--border);
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .tags-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .tag {
+      font-size: 0.74rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .tag.pub {
+      background: rgba(245, 158, 11, 0.18);
+      color: var(--warning);
+    }
+
+    .tag.fin {
+      background: rgba(16, 185, 129, 0.18);
+      color: var(--success);
+    }
+
+    .tag.can {
+      background: rgba(239, 68, 68, 0.18);
+      color: #fca5a5;
+    }
+
+    .tag.pau {
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--paused);
+    }
+
+    .progress-info {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width 0.25s;
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .btn-mini {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 9px;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-mini:hover {
+      border-color: var(--accent);
+      background: rgba(124, 92, 255, 0.12);
+    }
+
+    .btn-mini.pause-active {
+      border-color: var(--paused);
+      color: var(--paused);
+      background: rgba(56, 189, 248, 0.14);
+    }
+
+    .btn-mini.danger-btn:hover {
+      border-color: var(--danger);
+      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.14);
+    }
+
+    .notes-box {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .notes-box strong {
+      color: var(--text);
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid rgba(46, 51, 69, 0.6);
+    }
+
+    .status-lector {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .btn-link {
+      background: rgba(124, 92, 255, 0.18);
+      color: #c4b5fd;
+      text-decoration: none;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn-link:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    .chapters-scroll {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+      margin-top: 10px;
+    }
+
+    .chapter-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chapter-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .chapter-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chapter-controls select {
+      width: auto;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      color: var(--star);
+      font-weight: 600;
+    }
+
+    .chapter-item input {
+      padding: 6px 8px;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📚 Mi Biblioteca de Manhwas <span id="contador" class="badge-count">0 series</span></h1>
+    <div style="color: var(--muted); font-size: 0.9rem;">Lector activo: <strong>Oscar (ID: 1)</strong></div>
+  </header>
+
+  <div class="layout">
+    <!-- Formulario para agregar Manhwa -->
+    <aside class="panel">
+      <h2>Agregar nueva serie</h2>
+      <div id="mensaje" class="alert"></div>
+
+      <form id="formManhwa">
+        <div class="form-group">
+          <label for="titulo">Título del Manhwa</label>
+          <input type="text" id="titulo" placeholder="Ej. Omniscient Reader" required />
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label for="episodioActual">Cap. en el que vas</label>
+            <input type="number" id="episodioActual" min="0" value="1" required />
+          </div>
+          <div class="form-group">
+            <label for="episodiosTotales">Total capítulos</label>
+            <input type="number" id="episodiosTotales" min="1" value="50" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="estadoObra">Estado de la obra</label>
+          <select id="estadoObra">
+            <option value="En publicación">En publicación</option>
+            <option value="Finalizada">Finalizada</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="enlaceWeb">Enlace donde lo lees</label>
+          <input type="url" id="enlaceWeb" placeholder="https://..." required />
+        </div>
+
+        <div class="form-group">
+          <label for="notaComentario">Nota personal inicial (opcional)</label>
+          <textarea id="notaComentario" rows="2" placeholder="Ej. Quedé justo cuando entra a la mazmorra..."></textarea>
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="finalizadoPorLector" />
+          <span>Ya terminé de leerlo</span>
+        </label>
+
+        <button type="submit" class="btn-primary">+ Guardar en mi lista</button>
+      </form>
+    </aside>
+
+    <!-- Lista de Manhwas -->
+    <main>
+      <div class="toolbar">
+        <input type="text" id="buscador" placeholder="Buscar por título..." />
+        <select id="filtroLectura">
+          <option value="todos">Todos</option>
+          <option value="leyendo">Leyendo</option>
+          <option value="pausados">Pausados por mí</option>
+          <option value="cancelados">Obras canceladas</option>
+          <option value="terminados">Terminados por mí</option>
+        </select>
+      </div>
+
+      <div id="listaManhwas" class="cards-grid"></div>
+    </main>
+  </div>
+
+  <!-- Modal de lista de capítulos para notas y rating -->
+  <div id="modalNotas" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalTitulo">Capítulos, Notas y Rating</h3>
+          <small id="modalSubtitulo" style="color: var(--muted);"></small>
+        </div>
+        <button class="btn-close" onclick="cerrarModalNotas()">&times;</button>
+      </div>
+      <div id="listaCapitulosModal" class="chapters-scroll"></div>
+    </div>
+  </div>
+
+  <script>
+    const CLIENTE_ID = 1;
+    const API_KEY = 'manhwa-secret-123';
+    let biblioteca = [];
+    let manhwaModalId = null;
+
+    const form = document.getElementById('formManhwa');
+    const listaEl = document.getElementById('listaManhwas');
+    const contadorEl = document.getElementById('contador');
+    const mensajeEl = document.getElementById('mensaje');
+    const buscadorEl = document.getElementById('buscador');
+    const filtroEl = document.getElementById('filtroLectura');
+
+    function mostrarMensaje(texto, tipo) {
+      mensajeEl.textContent = texto;
+      mensajeEl.className = `alert ${tipo}`;
+      setTimeout(() => {
+        mensajeEl.className = 'alert';
+      }, 4500);
+    }
+
+    async function cargarManhwas() {
+      try {
+        const res = await fetch(`/manhwa/cliente/${CLIENTE_ID}`);
+        const json = await res.json();
+        biblioteca = json.data || [];
+        renderizarLista();
+        if (manhwaModalId !== null) {
+          renderizarCapitulosModal(manhwaModalId);
+        }
+      } catch (err) {
+        console.error('Error cargando manhwas:', err);
+      }
+    }
+
+    function obtenerClaseEstado(estado) {
+      if (estado === 'Finalizada') return 'fin';
+      if (estado === 'Cancelado') return 'can';
+      return 'pub';
+    }
+
+    function renderizarLista() {
+      const texto = buscadorEl.value.toLowerCase().trim();
+      const filtro = filtroEl.value;
+
+      const filtrados = biblioteca.filter((m) => {
+      const coincideTexto = (m.titulo || '').toLowerCase().includes(texto);
+        if (filtro === 'leyendo') return coincideTexto && !m.finalizadoPorLector && !m.pausadoPorLector;
+        if (filtro === 'pausados') return coincideTexto && Boolean(m.pausadoPorLector);
+        if (filtro === 'cancelados') return coincideTexto && m.estadoObra === 'Cancelado';
+        if (filtro === 'terminados') return coincideTexto && m.finalizadoPorLector;
+        return coincideTexto;
+      });
+
+      contadorEl.textContent = `${biblioteca.length} ${biblioteca.length === 1 ? 'serie' : 'series'}`;
+
+      if (filtrados.length === 0) {
+        listaEl.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <p>No hay manhwas para mostrar con ese filtro.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listaEl.innerHTML = filtrados.map((m) => {
+        const porcentaje = Math.min(100, Math.round((m.episodioActual / m.episodiosTotales) * 100));
+        const tagClass = obtenerClaseEstado(m.estadoObra);
+        const estaPausado = Boolean(m.pausadoPorLector);
+        const enPublicacion = m.estadoObra === 'En publicación';
+
+        const notasConTexto = (m.notas || []).filter((n) => n.comentario && n.comentario.trim() !== '');
+        const ultimaNota = notasConTexto.length > 0 ? notasConTexto[notasConTexto.length - 1] : null;
+
+        const calificadosLeidos = (m.notas || []).filter(
+          (n) => n.capitulo <= m.episodioActual && typeof n.rating === 'number'
+        ).length;
+
+        const ratingBadge = m.ratingGlobal > 0
+          ? `<div class="rating-pill">⭐ ${m.ratingGlobal} / 5 <span style="font-weight:400; color:var(--muted);">(${calificadosLeidos} ${calificadosLeidos === 1 ? 'cap' : 'caps'} leídos)</span></div>`
+          : `<div class="rating-pill unrated">☆ Sin calificación aún (hasta Cap. ${m.episodioActual})</div>`;
+
+        return `
+          <article class="manhwa-card ${estaPausado ? 'is-paused' : ''}">
+            <div>
+              <div class="card-header">
+                <h3 class="card-title">${m.titulo}</h3>
+                <div class="tags-group">
+                  <span class="tag ${tagClass}">${m.estadoObra}</span>
+                  ${estaPausado ? '<span class="tag pau">⏸ Pausado</span>' : ''}
+                </div>
+              </div>
+
+              ${ratingBadge}
+
+              <div class="progress-info">
+                <span>Cap. <strong>${m.episodioActual}</strong> de <strong>${m.episodiosTotales}</strong></span>
+                <span>${porcentaje}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${porcentaje}%"></div>
+              </div>
+
+              <div class="quick-actions">
+                <button class="btn-mini" onclick="sumarCapituloVisto(${m.id}, ${m.episodioActual}, ${m.episodiosTotales})" title="Marcar siguiente capítulo leído">
+                  +1 Cap visto
+                </button>
+
+                <button class="btn-mini ${estaPausado ? 'pause-active' : ''}" onclick="alternarPausa(${m.id}, ${estaPausado})">
+                  ${estaPausado ? '▶ Reanudar' : '⏸ Pausar'}
+                </button>
+
+                <button class="btn-mini" onclick="abrirModalNotas(${m.id})">
+                  ⭐ Notas y Rating
+                </button>
+
+                ${enPublicacion ? `
+                  <button class="btn-mini" onclick="sumarCapituloPublicado(${m.id}, ${m.episodiosTotales})" title="Subió un capítulo nuevo">
+                    +1 Cap publicado
+                  </button>
+                  <button class="btn-mini" onclick="editarTotalCapitulos(${m.id}, ${m.episodiosTotales})" title="Escribir número exacto de capítulos publicados">
+                    ✏️ Total caps
+                  </button>
+                  <button class="btn-mini danger-btn" onclick="marcarComoCancelada(${m.id}, '${m.titulo.replace(/'/g, "\\'")}')" title="Cambiar estado de la obra a Cancelado">
+                    🚫 Cancelada
+                  </button>
+                ` : ''}
+              </div>
+
+              ${ultimaNota ? `
+                <div class="notes-box">
+                  <strong>Última nota (Cap. ${ultimaNota.capitulo}${ultimaNota.rating ? ` · ⭐${ultimaNota.rating}` : ''}):</strong> ${ultimaNota.comentario}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="card-footer">
+              <span class="status-lector">
+                ${m.finalizadoPorLector ? '✅ Terminado' : estaPausado ? '⏸ En pausa' : '📖 Leyendo'}
+              </span>
+              <a href="${m.enlaceWeb}" target="_blank" rel="noopener noreferrer" class="btn-link">
+                Seguir leyendo ↗
+              </a>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function actualizarManhwa(id, cambios) {
+      try {
+        const res = await fetch(`/manhwa/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY,
+          },
+          body: JSON.stringify(cambios),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.message || 'No se pudo actualizar');
+          return;
+        }
+        await cargarManhwas();
+      } catch (err) {
+        alert('Error de conexión con el servidor');
+      }
+    }
+
+    function sumarCapituloVisto(id, actual, total) {
+      if (actual >= total) {
+        alert('Ya vas al día con el último capítulo disponible.');
+        return;
+      }
+      actualizarManhwa(id, { episodioActual: actual + 1 });
+    }
+
+    function alternarPausa(id, estaPausadoActual) {
+      actualizarManhwa(id, { pausadoPorLector: !estaPausadoActual });
+    }
+
+    function marcarComoCancelada(id, titulo) {
+      if (!confirm(`¿Seguro que quieres marcar "${titulo}" como obra Cancelada?`)) return;
+      actualizarManhwa(id, { estadoObra: 'Cancelado' });
+    }
+
+    function sumarCapituloPublicado(id, totalActual) {
+      actualizarManhwa(id, { episodiosTotales: totalActual + 1 });
+    }
+
+    function editarTotalCapitulos(id, totalActual) {
+      const entrada = prompt(`¿Cuántos capítulos tiene publicados ahora? (Actual: ${totalActual})`, totalActual + 1);
+      if (entrada === null) return;
+      const nuevoTotal = Number(entrada);
+      if (!Number.isInteger(nuevoTotal) || nuevoTotal < 1) {
+        alert('Ingresa un número válido mayor a 0.');
+        return;
+      }
+      actualizarManhwa(id, { episodiosTotales: nuevoTotal });
+    }
+
+    function abrirModalNotas(id) {
+      manhwaModalId = id;
+      document.getElementById('modalNotas').classList.add('open');
+      renderizarCapitulosModal(id);
+    }
+
+    function cerrarModalNotas() {
+      manhwaModalId = null;
+      document.getElementById('modalNotas').classList.remove('open');
+    }
+
+    function renderizarCapitulosModal(id) {
+      const manhwa = biblioteca.find((m) => m.id === id);
+      if (!manhwa) return;
+
+      document.getElementById('modalTitulo').textContent = `${manhwa.titulo}`;
+      document.getElementById('modalSubtitulo').textContent =
+        `Rating global (hasta Cap. ${manhwa.episodioActual}): ${manhwa.ratingGlobal > 0 ? `⭐ ${manhwa.ratingGlobal} / 5` : 'Sin calificar'}`;
+
+      const contenedor = document.getElementById('listaCapitulosModal');
+
+      const mapaNotas = new Map();
+      (manhwa.notas || []).forEach((n) => mapaNotas.set(n.capitulo, n));
+
+      let html = '';
+      for (let cap = 1; cap <= manhwa.episodiosTotales; cap++) {
+        const registro = mapaNotas.get(cap) || {};
+        const notaActual = registro.comentario || '';
+        const ratingActual = registro.rating || '';
+        const esActual = cap === manhwa.episodioActual;
+        const yaLeido = cap <= manhwa.episodioActual;
+
+        html += `
+          <div class="chapter-item" style="${esActual ? 'border-color: var(--accent);' : ''}">
+            <div class="chapter-item-top">
+              <div>
+                <strong>Capítulo ${cap}</strong>
+                ${esActual ? '<span style="color:var(--accent); font-size:0.78rem;"> (Vas aquí)</span>' : ''}
+                ${!yaLeido ? '<span style="color:var(--muted); font-size:0.75rem;"> · No leído aún (no cuenta en rating global)</span>' : ''}
+              </div>
+              <div class="chapter-controls">
+                <select id="select-rating-${manhwa.id}-${cap}">
+                  <option value="" ${ratingActual === '' ? 'selected' : ''}>☆ Sin rating</option>
+                  <option value="1" ${ratingActual === 1 ? 'selected' : ''}>⭐ 1</option>
+                  <option value="2" ${ratingActual === 2 ? 'selected' : ''}>⭐ 2</option>
+                  <option value="3" ${ratingActual === 3 ? 'selected' : ''}>⭐ 3</option>
+                  <option value="4" ${ratingActual === 4 ? 'selected' : ''}>⭐ 4</option>
+                  <option value="5" ${ratingActual === 5 ? 'selected' : ''}>⭐ 5</option>
+                </select>
+                <button class="btn-mini" onclick="guardarNotaCapitulo(${manhwa.id}, ${cap})">Guardar</button>
+              </div>
+            </div>
+            <input
+              type="text"
+              id="input-nota-${manhwa.id}-${cap}"
+              value="${notaActual.replace(/"/g, '&quot;')}"
+              placeholder="Nota personal para el cap. ${cap} (opcional)..."
+            />
+          </div>
+        `;
+      }
+      contenedor.innerHTML = html;
+    }
+
+    async function guardarNotaCapitulo(manhwaId, capitulo) {
+      const input = document.getElementById(`input-nota-${manhwaId}-${capitulo}`);
+      const select = document.getElementById(`select-rating-${manhwaId}-${capitulo}`);
+
+      const comentario = input.value.trim();
+      const rating = select.value ? Number(select.value) : undefined;
+
+      if (!comentario && !rating) {
+        alert('Escribe una nota o elige una calificación (1 a 5 estrellas) antes de guardar.');
+        return;
+      }
+
+      const payload = { capitulo };
+      if (comentario) payload.comentario = comentario;
+      if (rating) payload.rating = rating;
+
+      try {
+        const res = await fetch(`/manhwa/${manhwaId}/notas`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.message || 'Error al guardar');
+          return;
+        }
+        await cargarManhwas();
+      } catch (err) {
+        alert('Error de conexión al guardar');
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const episodioActual = Number(document.getElementById('episodioActual').value);
+      const episodiosTotales = Number(document.getElementById('episodiosTotales').value);
+      const comentario = document.getElementById('notaComentario').value.trim();
+
+      const payload = {
+        clienteId: CLIENTE_ID,
+        titulo: document.getElementById('titulo').value.trim(),
+        episodiosTotales,
+        episodioActual,
+        finalizadoPorLector: document.getElementById('finalizadoPorLector').checked,
+        pausadoPorLector: false,
+        estadoObra: document.getElementById('estadoObra').value,
+        enlaceWeb: document.getElementById('enlaceWeb').value.trim(),
+        notas: comentario ? [{ capitulo: episodioActual || 1, comentario }] : [],
+      };
+
+      try {
+        const res = await fetch('/manhwa', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          const msg = Array.isArray(data.message) ? data.message.join(', ') : data.message;
+          mostrarMensaje(msg || 'Error al guardar el manhwa', 'error');
+          return;
+        }
+
+        mostrarMensaje(`"${payload.titulo}" agregado a tu biblioteca`, 'success');
+        form.reset();
+        await cargarManhwas();
+      } catch (err) {
+        mostrarMensaje('No se pudo conectar con el servidor', 'error');
+      }
+    });
+
+    buscadorEl.addEventListener('input', renderizarLista);
+    filtroEl.addEventListener('change', renderizarLista);
+
+    cargarManhwas();
+  </script>
+</body>
+</html>

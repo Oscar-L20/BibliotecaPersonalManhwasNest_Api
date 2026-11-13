@@ -1,0 +1,40 @@
+{
+  "nextId": 2,
+  "manhwas": [
+    {
+      "id": 1,
+      "clienteId": 1,
+      "titulo": "Iniciando sesion en 10000 años en el futuro",
+      "episodiosTotales": 362,
+      "episodioActual": 42,
+      "finalizadoPorLector": false,
+      "pausadoPorLector": false,
+      "estadoObra": "En publicación",
+      "enlaceWeb": "https://lectorfenix.com/comics/iniciando-sesion-en-10-000-anos-en-el-futuro",
+      "notas": [
+        {
+          "capitulo": 1,
+          "rating": 2
+        },
+        {
+          "capitulo": 2,
+          "rating": 5
+        },
+        {
+          "capitulo": 3,
+          "rating": 5
+        },
+        {
+          "capitulo": 4,
+          "rating": 5
+        },
+        {
+          "capitulo": 7,
+          "rating": 4
+        }
+      ],
+      "ratingGlobal": 4.2,
+      "fechaAgregado": "2026-11-13T05:56:33.650Z"
+    }
+  ]
+}
